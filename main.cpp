@@ -95,7 +95,7 @@ hittable_list loadOBJ(std::string input_file)
 
     if (!reader.Warning().empty())
     {
-        std::cout << "TinyObjReader: " << reader.Warning();
+        std::cerr << "TinyObjReader: " << reader.Warning();
     }
 
     auto &attrib = reader.GetAttrib();
@@ -165,17 +165,25 @@ hittable_list loadOBJ(std::string input_file)
     return world;
 }
 
-int main()
+int main(int argc,char* argv[])
 {
+    if (argc != 3)
+    {
+        std::cout << "Please provide 2 arguments: 1st - input .obj file; 2nd - output .ppm file" << std::endl;
+        return 1;
+    }
+
+    std::string model_file_name = argv[1];
+    std::string output_file_name = argv[2];
+
     // Image
     const auto aspect_ratio = 16.0 / 9.0;
     const int image_width = 1200;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 1;
     const int max_depth = 50;
 
     // World - Read our .obj file
-    hittable_list world = loadOBJ("cube.obj");
+    hittable_list world = loadOBJ(model_file_name);
 
     // Camera
     point3 lookfrom(13,2,3);
@@ -186,11 +194,13 @@ int main()
 
     camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
 
-    // Render
-    std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+    // Render - store to PPM file
+    std::ofstream ofs;
+    ofs.open(output_file_name);
+    ofs << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
     for (int j = image_height-1; j >= 0; --j) {
-        std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
+        std::cout << "\rScanlines remaining: " << j << ' ' << std::flush;
         for (int i = 0; i < image_width; ++i) {
             auto u = double(i) / (image_width-1);
             auto v = double(j) / (image_height-1);
@@ -198,9 +208,11 @@ int main()
             ray r = cam.get_ray(u, v);
             color pixel_color = ray_color(r, world, cam, max_depth);
 
-            write_color(std::cout, pixel_color, samples_per_pixel);
+            write_color(ofs, pixel_color);
         }
     }
+    
+    ofs.close();
 
-    std::cerr << "\nDone.\n";
+    std::cout << "\nDone.\n";
 }
