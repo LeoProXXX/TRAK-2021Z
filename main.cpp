@@ -65,10 +65,10 @@ color ray_color(const ray &r, const std::unique_ptr<AccelerationStructure> &acce
         // ambient
         illumination += rec.mat_ptr->ambient * light["ambient"];
 
-        // // diffuse
+        // diffuse
         illumination += rec.mat_ptr->diffuse * light["diffuse"] * dot(intersection_to_light, rec.normal);
 
-        // // specular
+        // specular
         Vec3f intersection_to_camera = cam.origin - rec.p;
         normalize(intersection_to_camera);
         Vec3f H = intersection_to_light + intersection_to_camera;
