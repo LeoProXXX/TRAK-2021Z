@@ -5,7 +5,15 @@
 #include <cstdlib>
 #include <limits>
 #include <memory>
+#include <vector>
+#include <cassert>
 
+#include <atomic>
+std::atomic<uint32_t> numPrimaryRays(0);
+std::atomic<uint32_t> numRayTriangleTests(0);
+std::atomic<uint32_t> numRayTriangleIntersections(0);
+std::atomic<uint32_t> numRayBBoxTests(0);
+std::atomic<uint32_t> numRayBoundingVolumeTests(0);
 
 // Usings
 
@@ -14,8 +22,12 @@ using std::make_shared;
 using std::sqrt;
 
 // Constants
+long long int iddd2 = 0;
+bool second = false;
 
 const double infinity = std::numeric_limits<double>::infinity();
+const float kInfinity = std::numeric_limits<float>::max();
+constexpr double kEpsilon = 1e-8;
 const double pi = 3.1415926535897932385;
 
 // Utility Functions
@@ -44,6 +56,9 @@ inline int random_int(int min, int max) {
     // Returns a random integer in [min,max].
     return static_cast<int>(random_double(min, max+1));
 }
+
+template<typename T> inline T clamp(const T &v, const T &lo, const T &hi)
+{ return std::max(lo, std::min(v, hi)); }
 
 // Common Headers
 

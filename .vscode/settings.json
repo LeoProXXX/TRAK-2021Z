@@ -45,6 +45,11 @@
         "map": "cpp",
         "set": "cpp",
         "sstream": "cpp",
-        "xtree": "cpp"
+        "xtree": "cpp",
+        "atomic": "cpp",
+        "chrono": "cpp",
+        "deque": "cpp",
+        "queue": "cpp",
+        "ratio": "cpp"
     }
 }

@@ -7,16 +7,16 @@
 class ray {
     public:
         ray() {}
-        ray(const point3& origin, const vec3& direction)
+        ray(const point3& origin, const Vec3f& direction)
             : orig(origin), dir(direction), tm(0)
         {}
 
-        ray(const point3& origin, const vec3& direction, double time)
+        ray(const point3& origin, const Vec3f& direction, double time)
             : orig(origin), dir(direction), tm(time)
         {}
 
         point3 origin() const  { return orig; }
-        vec3 direction() const { return dir; }
+        Vec3f direction() const { return dir; }
         double time() const    { return tm; }
 
         point3 at(double t) const {
@@ -25,7 +25,7 @@ class ray {
 
     public:
         point3 orig;
-        vec3 dir;
+        Vec3f dir;
         double tm;
 };
 
