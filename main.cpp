@@ -34,7 +34,7 @@ color ray_color(const ray &r, const std::unique_ptr<AccelerationStructure> &acce
     float tHit = kInfinity;
 
     if (accel->intersect(r.origin(), r.direction(), rayIdd++, tHit, rec))
-    {
+    {   
         color illumination = color(0, 0, 0);
 
         Vec3f shiffted_point = rec.p + (1e-5 * rec.normal);
@@ -48,7 +48,7 @@ color ray_color(const ray &r, const std::unique_ptr<AccelerationStructure> &acce
         float tHit2 = kInfinity;
         bool is_hitted = accel->intersect(rr.origin(), rr.direction(), rayIdd++, tHit2, rec_light);
 
-        double min_distance = infinity;
+        float min_distance = kInfinity;
         if (is_hitted)
         {
             min_distance = rec_light.t;
@@ -133,9 +133,8 @@ int main(int argc, char *argv[])
     point3 lookat(0, 0, 0);
     Vec3f vup(0, 1, 0);
     auto dist_to_focus = 10.0;
-    auto aperture = 0.1;
 
-    camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
+    camera cam(lookfrom, lookat, vup, 20, aspect_ratio, dist_to_focus);
 
     // Render - store to PPM file
     std::ofstream ofs;

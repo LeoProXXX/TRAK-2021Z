@@ -2,9 +2,7 @@
 #define COLOR_H
 
 #include "vec3.h"
-
 #include <iostream>
-
 
 void write_color(std::ostream &out, color pixel_color) {
     auto r = pixel_color.x;
@@ -16,20 +14,10 @@ void write_color(std::ostream &out, color pixel_color) {
     if (g != g) g = 1.0;
     if (b != b) b = 1.0;
 
-    if (iddd2 == 227435 || iddd2 == 227436|| iddd2 == 227437)
-    {
-        std::cout << iddd2 << " | "
-                  << r << " | "
-                  << static_cast<int>(256 * clamp(r, 0.0, 0.999)) << ' '
-                  << static_cast<int>(256 * clamp(g, 0.0, 0.999)) << ' '
-                  << static_cast<int>(256 * clamp(b, 0.0, 0.999)) << std::endl;
-    }
-
     // Write the translated [0,255] value of each color component.
     out << static_cast<int>(256 * clamp(r, 0.0, 0.999)) << ' '
         << static_cast<int>(256 * clamp(g, 0.0, 0.999)) << ' '
         << static_cast<int>(256 * clamp(b, 0.0, 0.999)) << '\n';
 }
-
 
 #endif

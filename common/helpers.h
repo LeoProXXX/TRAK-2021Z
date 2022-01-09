@@ -22,10 +22,6 @@ using std::make_shared;
 using std::sqrt;
 
 // Constants
-long long int iddd2 = 0;
-bool second = false;
-
-const double infinity = std::numeric_limits<double>::infinity();
 const float kInfinity = std::numeric_limits<float>::max();
 constexpr double kEpsilon = 1e-8;
 const double pi = 3.1415926535897932385;

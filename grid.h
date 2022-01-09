@@ -5,9 +5,6 @@
 #include "common/mesh.h"
 #include "acceleration_structure.h"
 
-// [comment]
-// Implementation of the Grid acceleration structure
-// [/comment]
 class Grid : public AccelerationStructure
 {
     struct Cell
@@ -68,11 +65,6 @@ Grid::Grid(std::vector<std::unique_ptr<const Mesh>> &m) : AccelerationStructure(
     }
     cellDimension = size / resolution;
 
-    // [comment]
-    // Allocate memory - note that we don't create the cells yet at this
-    // point but just an array of pointers to cell. We will create the cells
-    // dynamically later when we are sure to insert something in them
-    // [/comment]
     uint32_t numCells = resolution.x * resolution.y * resolution.z;
     cells = new Grid::Cell *[numCells];
     memset(cells, 0x0, sizeof(Grid::Cell *) * numCells);
@@ -135,10 +127,6 @@ bool Grid::Cell::intersect(
     float uhit, vhit;
     for (uint32_t i = 0; i < triangles.size(); ++i)
     {
-        // [comment]
-        // Be sure that rayId is never 0 - because all mailbox values
-        // in the array are initialized with 0 too
-        // [/comment]
         if (rayId != triangles[i].mesh->mailbox[triangles[i].tri])
         {
             triangles[i].mesh->mailbox[triangles[i].tri] = rayId;
@@ -184,7 +172,6 @@ bool Grid::intersect(const Vec3f &orig, const Vec3f &dir, const uint32_t &rayId,
     Vec3f deltaT, nextCrossingT;
     for (uint8_t i = 0; i < 3; ++i)
     {
-        // convert ray starting point to cell coordinates
         float rayOrigCell = ((orig[i] + dir[i] * tHitBox) - bbox[0][i]);
         cell[i] = clamp<int32_t>(std::floor(rayOrigCell / cellDimension[i]), 0, resolution[i] - 1);
         if (dir[i] < 0)
@@ -203,8 +190,6 @@ bool Grid::intersect(const Vec3f &orig, const Vec3f &dir, const uint32_t &rayId,
         }
     }
 
-    // Walk through each cell of the grid and test for an intersection if
-    // current cell contains geometry
     const Mesh *intersectedMesh = nullptr;
     while (1)
     {

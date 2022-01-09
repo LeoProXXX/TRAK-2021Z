@@ -35,7 +35,6 @@ public:
                                                   matrials(matrials_),
                                                   normals(normals_)
     {
-        // pass by value (move constructor shouldn't even be called here ?
         for (uint32_t i = 0; i < vertexPool.size(); ++i)
         {
             matPointMult(objectToWorld, vertexPool[i]);
@@ -47,9 +46,9 @@ public:
             assert(polygonNumVertsArray[i] >= 3);
             numTriangles += polygonNumVertsArray[i] - 2;
         }
-        // create array to store the triangle indices in the vertex pool
+
         triangleIndicesInVertexPool.reserve(numTriangles * 3);
-        mailbox.reserve(numTriangles); // should all be initialized with 0
+        mailbox.reserve(numTriangles);
         // for each face
         for (uint32_t i = 0, offset = 0, currTriangleIndex = 0; i < numPolygons; ++i)
         {
@@ -73,9 +72,6 @@ public:
     std::vector<Vec3f> normals;
     std::vector<shared_ptr<material>> matrials;
 
-    // [comment]
-    // Mailboxes are used by the Grid acceleration structure
-    // [/comment]
     mutable std::vector<uint32_t> mailbox;
 };
 
@@ -122,13 +118,10 @@ bool rayTriangleIntersect(
 
 bool Mesh::intersect(const Vec3f &rayOrig, const Vec3f &rayDir, float &tNear, hit_record &rec) const
 {
-    // naive approach, loop over all triangles in the mesh and return true if one
-    // of the triangles at least is intersected
     float t, u, v;
     uint32_t intersectedTriIndex;
     bool intersected = false;
-    // tNear should be set inifnity first time this function is called and it
-    // will get eventually smaller as the ray intersects geometry
+
     for (uint32_t i = 0; i < numTriangles; ++i)
     {
         if (rayTriangleIntersect(rayOrig, rayDir,
