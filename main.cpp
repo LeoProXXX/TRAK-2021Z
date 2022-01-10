@@ -9,6 +9,7 @@
 
 #include <cstring>
 #include <iostream>
+#include <time.h>
 
 long long int rayIdd = 1;
 
@@ -93,6 +94,9 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    time_t timer;
+    float time_diff;
+
     std::string model_file_name = argv[1];
     std::string output_file_name = argv[2];
     std::string acc_structure = argv[3];
@@ -142,6 +146,7 @@ int main(int argc, char *argv[])
     ofs << "P3\n"
         << image_width << ' ' << image_height << "\n255\n";
 
+    const clock_t begin_time = clock();
     for (int j = image_height - 1; j >= 0; --j)
     {
         std::cout << "\rScanlines remaining: " << j << ' ' << std::flush;
@@ -157,8 +162,8 @@ int main(int argc, char *argv[])
             write_color(ofs, pixel_color);
         }
     }
-
+    time_diff = float(clock() - begin_time) / CLOCKS_PER_SEC;
     ofs.close();
-
-    std::cout << "\nDone.\n";
+    cout.precision(2);
+    std::cout << "\nDone.\nCzas: " << time_diff << "[s]\n";
 }
