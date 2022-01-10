@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 {
     if (argc != 4)
     {
-        std::cout << "Please provide 2 arguments: 1st - input .obj file; 2nd - output .ppm file; 3rd - acc data structure: [none, grid, bvh]"
+        std::cout << "Please provide 3 arguments: 1st - input .obj file; 2nd - output .ppm file; 3rd - acc data structure: [none, grid, bvh]"
                   << std::endl;
         return 1;
     }
@@ -164,6 +164,6 @@ int main(int argc, char *argv[])
     }
     time_diff = float(clock() - begin_time) / CLOCKS_PER_SEC;
     ofs.close();
-    cout.precision(2);
+    std::cout.precision(3);
     std::cout << "\nDone.\nCzas: " << time_diff << "[s]\n";
 }
