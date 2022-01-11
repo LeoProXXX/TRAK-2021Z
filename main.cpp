@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     }
 
     time_t timer;
-    float time_diff;
+    float time_render_diff;
 
     std::string model_file_name = argv[1];
     std::string output_file_name = argv[2];
@@ -145,24 +145,33 @@ int main(int argc, char *argv[])
     ofs << "P3\n"
         << image_width << ' ' << image_height << "\n255\n";
 
-    const clock_t begin_time = clock();
+    const clock_t begin_render_time = clock();
+    int k = 0;
     for (int j = image_height - 1; j >= 0; --j)
     {
-        std::cout << "\rScanlines remaining: " << j << ' ' << std::flush;
+        //std::cout << "\rScanlines remaining: " << j << ' ' << std::flush;
         for (int i = 0; i < image_width; ++i)
         {
             auto u = double(i) / (image_width - 1);
             auto v = double(j) / (image_height - 1);
+            k++;
 
             ray r = cam.get_ray(u, v);
 
             color pixel_color = ray_color(r, accel, cam, max_depth);
 
             write_color(ofs, pixel_color);
+
+
         }
+        if ((k*100)/(image_height*image_width)%5 == 0)
+        {
+            std::cout << "\rRendering progress: " << (k * 100) / (image_height * image_width) << " % " << std::flush;
+        }
+        
     }
-    time_diff = float(clock() - begin_time) / CLOCKS_PER_SEC;
+    time_render_diff = float(clock() - begin_render_time) / CLOCKS_PER_SEC;
     ofs.close();
     std::cout.precision(3);
-    std::cout << "\nDone.\nCzas: " << time_diff << "[s]\n";
+    std::cout << "\nDone.\nRendering time: " << time_render_diff << "[s]\n";
 }
