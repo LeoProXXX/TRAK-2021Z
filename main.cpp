@@ -124,8 +124,6 @@ int main(int argc, char *argv[])
     else if (acc_structure == "bvh")
     {
         accel = std::unique_ptr<AccelerationStructure>(new BVH(meshes));
-        //std::cerr << "Not implemented yet" << std::endl;
-        //return 2;
     }
     else
     {
