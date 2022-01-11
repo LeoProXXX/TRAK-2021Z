@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 #include <cassert>
+#include <queue>
 
 #include <atomic>
 std::atomic<uint32_t> numPrimaryRays(0);
