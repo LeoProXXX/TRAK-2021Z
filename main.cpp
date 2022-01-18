@@ -7,6 +7,7 @@
 #include "acceleration_structure.h"
 #include "grid.h"
 #include "bvh.h"
+#include "argparse/argparse.hpp"
 
 #include <cstring>
 #include <iostream>
@@ -88,19 +89,35 @@ color ray_color(const ray &r, const std::unique_ptr<AccelerationStructure> &acce
 
 int main(int argc, char *argv[])
 {
-    if (argc != 4)
-    {
-        std::cout << "Please provide 3 arguments: 1st - input .obj file; 2nd - output .ppm file; 3rd - acc data structure: [none, grid, bvh]"
-                  << std::endl;
-        return 1;
+    argparse::ArgumentParser program("nazwa_prog");
+
+    program.add_argument("input_file")
+        .help("Input model file [.obj]");
+
+    program.add_argument("output_file")
+        .help("Output image file [.ppm]");
+
+    program.add_argument("-acc_structure")
+        .default_value(std::string("none"))
+        .help("Acceleration data structure [grid, bvh]");
+
+
+    try {
+        program.parse_args(argc, argv);    // Example: ./main --color orange
     }
+    catch (const std::runtime_error& err) {
+        std::cerr << err.what() << std::endl;
+        std::cerr << program;
+        std::exit(1);
+    }
+
 
     time_t timer;
     float time_render_diff;
 
-    std::string model_file_name = argv[1];
-    std::string output_file_name = argv[2];
-    std::string acc_structure = argv[3];
+    auto model_file_name = program.get<std::string>("input_file");
+    auto output_file_name = program.get<std::string>("output_file");
+    auto acc_structure = program.get<std::string>("-acc_structure");
 
     // Image
     const auto aspect_ratio = 16.0 / 9.0;
