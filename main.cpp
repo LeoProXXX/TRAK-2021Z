@@ -101,6 +101,9 @@ int main(int argc, char *argv[])
         .default_value(std::string("none"))
         .help("Acceleration data structure [grid, bvh]");
 
+    program.add_argument("-grid_resolution")
+        .default_value(std::string("0"))
+        .help("Resolution od uniform grid in single dimmension. If the value is less than 1, heuristic is used");
 
     try {
         program.parse_args(argc, argv);    // Example: ./main --color orange
@@ -117,6 +120,7 @@ int main(int argc, char *argv[])
     auto model_file_name = program.get<std::string>("input_file");
     auto output_file_name = program.get<std::string>("output_file");
     auto acc_structure = program.get<std::string>("-acc_structure");
+    auto grid_resolution = std::stoi(program.get<std::string>("-grid_resolution"));
 
     // Image
     const auto aspect_ratio = 16.0 / 9.0;
@@ -135,7 +139,7 @@ int main(int argc, char *argv[])
     }
     else if (acc_structure == "grid")
     {
-        accel = std::unique_ptr<AccelerationStructure>(new Grid(meshes));
+        accel = std::unique_ptr<AccelerationStructure>(new Grid(meshes, grid_resolution));
     }
     else if (acc_structure == "bvh")
     {

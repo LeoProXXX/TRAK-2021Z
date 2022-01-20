@@ -23,7 +23,7 @@ class Grid : public AccelerationStructure
     };
 
 public:
-    Grid(std::vector<std::unique_ptr<const Mesh>> &m);
+    Grid(std::vector<std::unique_ptr<const Mesh>> &m, uint32_t resolution_dim);
     ~Grid();
     bool intersect(const Vec3f &, const Vec3f &, const uint32_t &, float &, hit_record &) const;
     Cell **cells;

@@ -15,7 +15,7 @@ std::vector<std::unique_ptr<const Mesh>> loadOBJMeshes(std::string input_file)
     std::vector<std::unique_ptr<const Mesh>> meshes;
 
     tinyobj::ObjReaderConfig reader_config;
-    reader_config.mtl_search_path = "./"; // Path to material
+    // reader_config.mtl_search_path = "./"; // Path to material
 
     tinyobj::ObjReader reader;
 

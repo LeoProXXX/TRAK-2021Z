@@ -1,8 +1,37 @@
 #include "grid.h"
 #include <cstring>
+#include <algorithm>
 
 
-Grid::Grid(std::vector<std::unique_ptr<const Mesh>>& m) : AccelerationStructure(m)
+Vec3<uint32_t> clearly_resolution_heuristic(Vec3f size, uint32_t totalNumTriangles)
+{
+    float cubeRoot = powf(totalNumTriangles / (size.x * size.y * size.z), 1. / 3.f);
+    Vec3<uint32_t> resolution;
+
+    for (uint8_t i = 0; i < 3; ++i)
+    {
+        resolution[i] = std::floor(size[i] * cubeRoot);
+        if (resolution[i] < 1)
+            resolution[i] = 1;
+        if (resolution[i] > 512)
+            resolution[i] = 512;
+    }
+
+    return resolution;
+}
+
+
+Vec3<uint32_t> modified_clearly_resolution_heuristic(Vec3f size, uint32_t totalNumTriangles)
+{
+    Vec3<uint32_t> resolution = clearly_resolution_heuristic(size, totalNumTriangles);
+
+    uint32_t max_dim_resolution = std::max(resolution[0], resolution[1]);
+    max_dim_resolution = std::max(max_dim_resolution, resolution[2]);
+
+    return Vec3<uint32_t>(max_dim_resolution);
+}
+
+Grid::Grid(std::vector<std::unique_ptr<const Mesh>>& m, uint32_t resolution_dim) : AccelerationStructure(m)
 {
     uint32_t totalNumTriangles = 0;
     for (const auto& m : meshes)
@@ -13,15 +42,15 @@ Grid::Grid(std::vector<std::unique_ptr<const Mesh>>& m) : AccelerationStructure(
     }
     // Create the grid
     Vec3f size = bbox[1] - bbox[0];
-    float cubeRoot = powf(totalNumTriangles / (size.x * size.y * size.z), 1. / 3.f);
-    for (uint8_t i = 0; i < 3; ++i)
-    {
-        resolution[i] = std::floor(size[i] * cubeRoot);
-        if (resolution[i] < 1)
-            resolution[i] = 1;
-        if (resolution[i] > 128)
-            resolution[i] = 128;
+    
+    if (resolution_dim < 1) {
+        resolution = modified_clearly_resolution_heuristic(size, totalNumTriangles);
     }
+    else {
+        resolution = Vec3<uint32_t>(resolution_dim);
+    }
+    std::cout << "Grid resolution: " << resolution << std::endl;
+
     cellDimension = size / resolution;
 
     uint32_t numCells = resolution.x * resolution.y * resolution.z;
@@ -39,18 +68,13 @@ Grid::Grid(std::vector<std::unique_ptr<const Mesh>>& m) : AccelerationStructure(
 
             for (uint8_t j = 0; j < 3; ++j)
             {
-                if (v0[j] < min[j])
-                    min[j] = v0[j];
-                if (v1[j] < min[j])
-                    min[j] = v1[j];
-                if (v2[j] < min[j])
-                    min[j] = v2[j];
-                if (v0[j] > max[j])
-                    max[j] = v0[j];
-                if (v1[j] > max[j])
-                    max[j] = v1[j];
-                if (v2[j] > max[j])
-                    max[j] = v2[j];
+                min[j] = std::min(v0[j], min[j]);
+                min[j] = std::min(v1[j], min[j]);
+                min[j] = std::min(v2[j], min[j]);
+                
+                max[j] = std::max(v0[j], max[j]);
+                max[j] = std::max(v1[j], max[j]);
+                max[j] = std::max(v2[j], max[j]);
             }
             // Convert to cell coordinates
             min = (min - bbox[0]) / cellDimension;
