@@ -10,11 +10,11 @@
 #include <queue>
 
 #include <atomic>
-std::atomic<uint32_t> numPrimaryRays(0);
-std::atomic<uint32_t> numRayTriangleTests(0);
-std::atomic<uint32_t> numRayTriangleIntersections(0);
-std::atomic<uint32_t> numRayBBoxTests(0);
-std::atomic<uint32_t> numRayBoundingVolumeTests(0);
+inline std::atomic<uint32_t> numPrimaryRays(0);
+inline std::atomic<uint32_t> numRayTriangleTests(0);
+inline std::atomic<uint32_t> numRayTriangleIntersections(0);
+inline std::atomic<uint32_t> numRayBBoxTests(0);
+inline std::atomic<uint32_t> numRayBoundingVolumeTests(0);
 
 // Usings
 

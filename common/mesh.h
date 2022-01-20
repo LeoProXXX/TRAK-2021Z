@@ -76,7 +76,7 @@ public:
 };
 
 // use Moller-Trumbor method
-bool rayTriangleIntersect(
+inline bool rayTriangleIntersect(
     const Vec3f &orig, const Vec3f &dir,
     const Vec3f &v0, const Vec3f &v1, const Vec3f &v2,
     float &t, float &u, float &v)
@@ -116,7 +116,7 @@ bool rayTriangleIntersect(
     return true;
 }
 
-bool Mesh::intersect(const Vec3f &rayOrig, const Vec3f &rayDir, float &tNear, hit_record &rec) const
+inline bool Mesh::intersect(const Vec3f &rayOrig, const Vec3f &rayDir, float &tNear, hit_record &rec) const
 {
     float t, u, v;
     uint32_t intersectedTriIndex;

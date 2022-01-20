@@ -3,10 +3,10 @@
 #include "common/color.h"
 #include "common/material.h"
 #include "common/mesh.h"
-#include "meshes_data_provider.h"
-#include "acceleration_structure.h"
-#include "grid.h"
-#include "bvh.h"
+#include "common/meshes_data_provider.h"
+#include "acc_structures/acceleration_structure.h"
+#include "acc_structures/grid.h"
+#include "acc_structures/bvh.h"
 #include "argparse/argparse.hpp"
 
 #include <cstring>
@@ -89,7 +89,7 @@ color ray_color(const ray &r, const std::unique_ptr<AccelerationStructure> &acce
 
 int main(int argc, char *argv[])
 {
-    argparse::ArgumentParser program("nazwa_prog");
+    argparse::ArgumentParser program("main");
 
     program.add_argument("input_file")
         .help("Input model file [.obj]");
@@ -110,7 +110,6 @@ int main(int argc, char *argv[])
         std::cerr << program;
         std::exit(1);
     }
-
 
     time_t timer;
     float time_render_diff;

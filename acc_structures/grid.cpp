@@ -1,52 +1,11 @@
-#ifndef GRID_H
-#define GRID_H
+#include "grid.h"
+#include <cstring>
 
-#include "common/helpers.h"
-#include "common/mesh.h"
-#include "acceleration_structure.h"
 
-class Grid : public AccelerationStructure
-{
-    struct Cell
-    {
-        Cell() {}
-        struct TriangleDesc
-        {
-            TriangleDesc(const Mesh *m, const uint32_t &t) : mesh(m), tri(t) {}
-            const Mesh *mesh;
-            uint32_t tri;
-        };
-
-        void insert(const Mesh *mesh, uint32_t t)
-        {
-            triangles.push_back(Grid::Cell::TriangleDesc(mesh, t));
-        }
-
-        bool intersect(const Vec3f &, const Vec3f &, const uint32_t &, float &, const Mesh *&, hit_record &rec) const;
-
-        std::vector<TriangleDesc> triangles;
-    };
-
-public:
-    Grid(std::vector<std::unique_ptr<const Mesh>> &m);
-    ~Grid()
-    {
-        for (uint32_t i = 0; i < resolution[0] * resolution[1] * resolution[2]; ++i)
-            if (cells[i] != NULL)
-                delete cells[i];
-        delete[] cells;
-    }
-    bool intersect(const Vec3f &, const Vec3f &, const uint32_t &, float &, hit_record &) const;
-    Cell **cells;
-    BBox<> bbox;
-    Vec3<uint32_t> resolution;
-    Vec3f cellDimension;
-};
-
-Grid::Grid(std::vector<std::unique_ptr<const Mesh>> &m) : AccelerationStructure(m)
+Grid::Grid(std::vector<std::unique_ptr<const Mesh>>& m) : AccelerationStructure(m)
 {
     uint32_t totalNumTriangles = 0;
-    for (const auto &m : meshes)
+    for (const auto& m : meshes)
     {
         bbox.extendBy(m->bbox[0]);
         bbox.extendBy(m->bbox[1]);
@@ -66,17 +25,17 @@ Grid::Grid(std::vector<std::unique_ptr<const Mesh>> &m) : AccelerationStructure(
     cellDimension = size / resolution;
 
     uint32_t numCells = resolution.x * resolution.y * resolution.z;
-    cells = new Grid::Cell *[numCells];
-    memset(cells, 0x0, sizeof(Grid::Cell *) * numCells);
+    cells = new Grid::Cell * [numCells];
+    memset(cells, 0x0, sizeof(Grid::Cell*) * numCells);
 
-    for (const auto &m : meshes)
+    for (const auto& m : meshes)
     {
         for (uint32_t i = 0, off = 0; i < m->numTriangles; ++i, off += 3)
         {
             Vec3f min(kInfinity), max(-kInfinity);
-            const Vec3f &v0 = m->vertexPool[m->triangleIndicesInVertexPool[off]];
-            const Vec3f &v1 = m->vertexPool[m->triangleIndicesInVertexPool[off + 1]];
-            const Vec3f &v2 = m->vertexPool[m->triangleIndicesInVertexPool[off + 2]];
+            const Vec3f& v0 = m->vertexPool[m->triangleIndicesInVertexPool[off]];
+            const Vec3f& v1 = m->vertexPool[m->triangleIndicesInVertexPool[off + 1]];
+            const Vec3f& v2 = m->vertexPool[m->triangleIndicesInVertexPool[off + 2]];
 
             for (uint8_t j = 0; j < 3; ++j)
             {
@@ -120,9 +79,22 @@ Grid::Grid(std::vector<std::unique_ptr<const Mesh>> &m) : AccelerationStructure(
     }
 }
 
+Grid::~Grid()
+{
+    for (uint32_t i = 0; i < resolution[0] * resolution[1] * resolution[2]; ++i)
+        if (cells[i] != NULL)
+            delete cells[i];
+    delete[] cells;
+}
+
+void Grid::Cell::insert(const Mesh* mesh, uint32_t t)
+{
+    triangles.push_back(Grid::Cell::TriangleDesc(mesh, t));
+}
+
 bool Grid::Cell::intersect(
-    const Vec3f &orig, const Vec3f &dir, const uint32_t &rayId,
-    float &tHit, const Mesh *&intersectedMesh, hit_record &rec) const
+    const Vec3f& orig, const Vec3f& dir, const uint32_t& rayId,
+    float& tHit, const Mesh*& intersectedMesh, hit_record& rec) const
 {
     float uhit, vhit;
     for (uint32_t i = 0; i < triangles.size(); ++i)
@@ -130,11 +102,11 @@ bool Grid::Cell::intersect(
         if (rayId != triangles[i].mesh->mailbox[triangles[i].tri])
         {
             triangles[i].mesh->mailbox[triangles[i].tri] = rayId;
-            const Mesh *mesh = triangles[i].mesh;
+            const Mesh* mesh = triangles[i].mesh;
             uint32_t j = triangles[i].tri * 3;
-            const Vec3f &v0 = mesh->vertexPool[mesh->triangleIndicesInVertexPool[j]];
-            const Vec3f &v1 = mesh->vertexPool[mesh->triangleIndicesInVertexPool[j + 1]];
-            const Vec3f &v2 = mesh->vertexPool[mesh->triangleIndicesInVertexPool[j + 2]];
+            const Vec3f& v0 = mesh->vertexPool[mesh->triangleIndicesInVertexPool[j]];
+            const Vec3f& v1 = mesh->vertexPool[mesh->triangleIndicesInVertexPool[j + 1]];
+            const Vec3f& v2 = mesh->vertexPool[mesh->triangleIndicesInVertexPool[j + 2]];
             float t, u, v;
 
             if (rayTriangleIntersect(orig, dir, v0, v1, v2, t, u, v))
@@ -159,7 +131,8 @@ bool Grid::Cell::intersect(
     return (intersectedMesh != nullptr);
 }
 
-bool Grid::intersect(const Vec3f &orig, const Vec3f &dir, const uint32_t &rayId, float &tHit, hit_record &rec) const
+
+bool Grid::intersect(const Vec3f& orig, const Vec3f& dir, const uint32_t& rayId, float& tHit, hit_record& rec) const
 {
     const Vec3f invDir = 1 / dir;
     const Vec3b sign(dir.x < 0, dir.y < 0, dir.z < 0);
@@ -190,7 +163,7 @@ bool Grid::intersect(const Vec3f &orig, const Vec3f &dir, const uint32_t &rayId,
         }
     }
 
-    const Mesh *intersectedMesh = nullptr;
+    const Mesh* intersectedMesh = nullptr;
     while (1)
     {
         uint32_t o = cell[2] * resolution[0] * resolution[1] + cell[1] * resolution[0] + cell[0];
@@ -202,7 +175,7 @@ bool Grid::intersect(const Vec3f &orig, const Vec3f &dir, const uint32_t &rayId,
             ((nextCrossingT[0] < nextCrossingT[1]) << 2) +
             ((nextCrossingT[0] < nextCrossingT[2]) << 1) +
             ((nextCrossingT[1] < nextCrossingT[2]));
-        static const uint8_t map[8] = {2, 1, 2, 1, 2, 2, 0, 0};
+        static const uint8_t map[8] = { 2, 1, 2, 1, 2, 2, 0, 0 };
         uint8_t axis = map[k];
 
         if (tHit < nextCrossingT[axis])
@@ -215,5 +188,3 @@ bool Grid::intersect(const Vec3f &orig, const Vec3f &dir, const uint32_t &rayId,
 
     return (intersectedMesh != nullptr);
 }
-
-#endif

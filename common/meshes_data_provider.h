@@ -1,13 +1,13 @@
 #ifndef MESHES_DATA_PROVIDER_H
 #define MESHES_DATA_PROVIDER_H
 
-#include "common/helpers.h"
-#include "common/mesh.h"
+#include "helpers.h"
+#include "mesh.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION // define this in only *one* .cc
 // Optional. define TINYOBJLOADER_USE_MAPBOX_EARCUT gives robust trinagulation. Requires C++11
 //#define TINYOBJLOADER_USE_MAPBOX_EARCUT
-#include "common/external/tiny_obj_loader.h"
+#include "external/tiny_obj_loader.h"
 
 // https://github.com/tinyobjloader/tinyobjloader
 std::vector<std::unique_ptr<const Mesh>> loadOBJMeshes(std::string input_file)
