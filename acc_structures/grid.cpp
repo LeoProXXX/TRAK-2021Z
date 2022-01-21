@@ -3,7 +3,7 @@
 #include <algorithm>
 
 
-Vec3<uint32_t> clearly_resolution_heuristic(Vec3f size, uint32_t totalNumTriangles)
+Vec3<uint32_t> Grid::clearly_resolution_heuristic(Vec3f size, uint32_t totalNumTriangles)
 {
     float cubeRoot = powf(totalNumTriangles / (size.x * size.y * size.z), 1. / 3.f);
     Vec3<uint32_t> resolution;
@@ -21,7 +21,7 @@ Vec3<uint32_t> clearly_resolution_heuristic(Vec3f size, uint32_t totalNumTriangl
 }
 
 
-Vec3<uint32_t> modified_clearly_resolution_heuristic(Vec3f size, uint32_t totalNumTriangles)
+Vec3<uint32_t> Grid::modified_clearly_resolution_heuristic(Vec3f size, uint32_t totalNumTriangles)
 {
     Vec3<uint32_t> resolution = clearly_resolution_heuristic(size, totalNumTriangles);
 

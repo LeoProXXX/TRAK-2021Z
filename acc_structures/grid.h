@@ -26,6 +26,8 @@ public:
     Grid(std::vector<std::unique_ptr<const Mesh>> &m, uint32_t resolution_dim);
     ~Grid();
     bool intersect(const Vec3f &, const Vec3f &, const uint32_t &, float &, hit_record &) const;
+    Vec3<uint32_t> clearly_resolution_heuristic(Vec3f size, uint32_t totalNumTriangles);
+    Vec3<uint32_t> modified_clearly_resolution_heuristic(Vec3f size, uint32_t totalNumTriangles);
     Cell **cells;
     BBox<> bbox;
     Vec3<uint32_t> resolution;
