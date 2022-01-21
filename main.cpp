@@ -116,6 +116,7 @@ int main(int argc, char *argv[])
 
     time_t timer;
     float time_render_diff;
+    float time_acc_s_diff;
 
     auto model_file_name = program.get<std::string>("input_file");
     auto output_file_name = program.get<std::string>("output_file");
@@ -133,6 +134,7 @@ int main(int argc, char *argv[])
     makeScene(meshes, model_file_name);
 
     std::unique_ptr<AccelerationStructure> accel;
+    const clock_t begin_acc_s_time = clock();
     if (acc_structure == "none")
     {
         accel = std::unique_ptr<AccelerationStructure>(new AccelerationStructure(meshes));
@@ -150,6 +152,7 @@ int main(int argc, char *argv[])
         std::cerr << "Not implemented yet" << std::endl;
         return 2;
     }
+    time_acc_s_diff = float(clock() - begin_acc_s_time) / CLOCKS_PER_SEC;
 
     // Camera
     point3 lookfrom(13, 2, 3);
@@ -194,4 +197,6 @@ int main(int argc, char *argv[])
     ofs.close();
     std::cout.precision(3);
     std::cout << "\nDone.\nRendering time: " << time_render_diff << "[s]\n";
+    std::cout.precision(5);
+    std::cout << "Create acceleration structure time: " << time_acc_s_diff << "[s]\n";
 }
