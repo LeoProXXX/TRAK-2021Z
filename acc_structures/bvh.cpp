@@ -11,7 +11,7 @@ const Vec3f BVH::planeSetNormals[BVH::kNumPlaneSetNormals] = {
 };
 
 
-BVH::BVH(std::vector<std::unique_ptr<const Mesh>>& m) : AccelerationStructure(m)
+BVH::BVH(std::vector<std::unique_ptr<const Mesh>>& m, uint32_t max_tree_depth, uint32_t children_num) : AccelerationStructure(m)
 {
     Extents sceneExtents;
     extentsList.reserve(meshes.size());
@@ -28,13 +28,13 @@ BVH::BVH(std::vector<std::unique_ptr<const Mesh>>& m) : AccelerationStructure(m)
         extentsList[i].mesh = meshes[i].get();
     }
 
-    octree = new Octree(sceneExtents);
+    tree = new Tree(sceneExtents, max_tree_depth, children_num);
 
     for (uint32_t i = 0; i < meshes.size(); ++i) {
-        octree->insert(&extentsList[i]);
+        tree->insert(&extentsList[i]);
     }
 
-    octree->build();
+    tree->build();
 }
 
 BVH::Extents::Extents()
@@ -60,7 +60,7 @@ Vec3f BVH::Extents::centroid() const
         d[2][0] + d[2][1] * 0.5);
 }
 
-BVH::Octree::Octree(const Extents& sceneExtents)
+BVH::Tree::Tree(const Extents& sceneExtents, uint32_t& max_tree_depth, uint32_t& children_num)
 {
     float xDiff = sceneExtents.d[0][1] - sceneExtents.d[0][0];
     float yDiff = sceneExtents.d[1][1] - sceneExtents.d[1][0];
@@ -72,29 +72,38 @@ BVH::Octree::Octree(const Extents& sceneExtents)
         sceneExtents.d[2][0] + sceneExtents.d[2][1]);
     bbox[0] = (minPlusMax - maxDiff) * 0.5;
     bbox[1] = (minPlusMax + maxDiff) * 0.5;
-    root = new OctreeNode;
+    this->tree_depth = max_tree_depth;
+    this->children_no = children_num;
+    root = new TreeNode(&this->children_no);
 }
 
-BVH::Octree::~Octree() { deleteOctreeNode(root); }
+BVH::Tree::~Tree() { deleteTreeNode(root); }
 
-void BVH::Octree::insert(const Extents* extents) { insert(root, extents, bbox, 0); }
+void BVH::Tree::insert(const Extents* extents) { insert(root, extents, bbox, 0); }
 
-void BVH::Octree::build() { build(root, bbox); };
+void BVH::Tree::build() { build(root, bbox); };
 
-void BVH::Octree::deleteOctreeNode(OctreeNode*& node)
+BVH::Tree::TreeNode::TreeNode(uint32_t* children_num) 
+{ 
+this->children_n_adr = children_num;
+std::cout << "childern numb: " << *children_num << std::endl;
+std::cout << "childern numb: " << *(this->children_n_adr) << std::endl;
+}
+
+void BVH::Tree::deleteTreeNode(TreeNode*& node)
 {
     for (uint8_t i = 0; i < 8; i++) {
         if (node->child[i] != nullptr) {
-            deleteOctreeNode(node->child[i]);
+            deleteTreeNode(node->child[i]);
         }
     }
     delete node;
 }
 
-void BVH::Octree::insert(OctreeNode*& node, const Extents* extents, const BBox<>& bbox, uint32_t depth)
+void BVH::Tree::insert(TreeNode*& node, const Extents* extents, const BBox<>& bbox, uint32_t depth)
 {
     if (node->isLeaf) {
-        if (node->nodeExtentsList.size() == 0 || depth == 16) {
+        if (node->nodeExtentsList.size() == 0 || depth == this->tree_depth) {
             node->nodeExtentsList.push_back(extents);
         }
         else {
@@ -145,12 +154,12 @@ void BVH::Octree::insert(OctreeNode*& node, const Extents* extents, const BBox<>
         }
 
         if (node->child[childIndex] == nullptr)
-            node->child[childIndex] = new OctreeNode;
+            node->child[childIndex] = new TreeNode(&this->children_no);
         insert(node->child[childIndex], extents, childBBox, depth + 1);
     }
 }
 
-void BVH::Octree::build(OctreeNode*& node, const BBox<>& bbox)
+void BVH::Tree::build(TreeNode*& node, const BBox<>& bbox)
 {
     if (node->isLeaf) {
         for (const auto& e : node->nodeExtentsList) {
@@ -214,13 +223,13 @@ bool BVH::intersect(const Vec3f& orig, const Vec3f& dir, const uint32_t& rayId, 
 
     uint8_t planeIndex;
     float tNear = 0, tFar = kInfinity; 
-    if (!octree->root->nodeExtents.intersect(precomputedNumerator, precomputedDenominator, tNear, tFar, planeIndex) || tFar < 0)
+    if (!tree->root->nodeExtents.intersect(precomputedNumerator, precomputedDenominator, tNear, tFar, planeIndex) || tFar < 0)
         return false;
     tHit = tFar;
-    std::priority_queue<BVH::Octree::QueueElement> queue;
-    queue.push(BVH::Octree::QueueElement(octree->root, 0));
+    std::priority_queue<BVH::Tree::QueueElement> queue;
+    queue.push(BVH::Tree::QueueElement(tree->root, 0));
     while (!queue.empty() && queue.top().t < tHit) {
-        const Octree::OctreeNode* node = queue.top().node;
+        const Tree::TreeNode* node = queue.top().node;
         queue.pop();
         if (node->isLeaf) {
             for (const auto& e : node->nodeExtentsList) {
@@ -237,7 +246,7 @@ bool BVH::intersect(const Vec3f& orig, const Vec3f& dir, const uint32_t& rayId, 
                     float tNearChild = 0, tFarChild = tFar;
                     if (node->child[i]->nodeExtents.intersect(precomputedNumerator, precomputedDenominator, tNearChild, tFarChild, planeIndex)) {
                         float t = (tNearChild < 0 && tFarChild >= 0) ? tFarChild : tNearChild;
-                        queue.push(BVH::Octree::QueueElement(node->child[i], t));
+                        queue.push(BVH::Tree::QueueElement(node->child[i], t));
                     }
                 }
             }
@@ -247,4 +256,4 @@ bool BVH::intersect(const Vec3f& orig, const Vec3f& dir, const uint32_t& rayId, 
     return (intersectedMesh != nullptr);
 }
 
-BVH::~BVH() { delete octree; }
+BVH::~BVH() { delete tree; }

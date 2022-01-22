@@ -19,45 +19,48 @@ class BVH : public AccelerationStructure
         const Mesh* mesh;
     };
 
-    struct Octree
+    struct Tree
     {
-        Octree(const Extents& sceneExtents);
-        ~Octree();
+        Tree(const Extents& sceneExtents, uint32_t& max_tree_depth, uint32_t& children_num);
+        ~Tree();
         void insert(const Extents* extents);
         void build();
 
-        struct OctreeNode
+        struct TreeNode
         {
-            OctreeNode* child[8] = { nullptr };;
+            TreeNode(uint32_t* children_num);
+            TreeNode* child[(*children_num)] = { nullptr };;
             std::vector<const Extents*> nodeExtentsList;
             Extents nodeExtents;
             bool isLeaf = true;
+            uint32_t* children_n_adr;
         };
 
         struct QueueElement
         {
-            const OctreeNode* node; 
+            const TreeNode* node; 
             float t; 
-            QueueElement(const OctreeNode* n, float tn) : node(n), t(tn) {}
-
+            QueueElement(const TreeNode* n, float tn) : node(n), t(tn) {}
             friend bool operator < (const QueueElement& a, const QueueElement& b) { return a.t > b.t; }
         };
         
-        OctreeNode* root = nullptr;
+        TreeNode* root = nullptr;
         BBox<> bbox;
+        uint32_t tree_depth;
+        uint32_t children_no;
 
     private:
 
-        void deleteOctreeNode(OctreeNode*& node);
-        void insert(OctreeNode*& node, const Extents* extents, const BBox<>& bbox, uint32_t depth);
-        void build(OctreeNode*& node, const BBox<>& bbox);
+        void deleteTreeNode(TreeNode*& node);
+        void insert(TreeNode*& node, const Extents* extents, const BBox<>& bbox, uint32_t depth);
+        void build(TreeNode*& node, const BBox<>& bbox);
     };
 
     std::vector<Extents> extentsList;
-    Octree* octree = nullptr;
+    Tree* tree = nullptr;
 
 public:
-	BVH(std::vector<std::unique_ptr<const Mesh>>& m);
+    BVH(std::vector<std::unique_ptr<const Mesh>>& m, uint32_t max_tree_depth, uint32_t children_num);
     bool intersect(const Vec3f&, const Vec3f&, const uint32_t&, float&, hit_record&) const;
     ~BVH();
 };

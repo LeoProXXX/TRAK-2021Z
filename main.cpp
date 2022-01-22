@@ -105,6 +105,16 @@ int main(int argc, char *argv[])
         .default_value(std::string("0"))
         .help("Resolution od uniform grid in single dimmension. If the value is less than 1, heuristic is used");
 
+    program.add_argument("-bvh_tree_depth")
+        .default_value(16)
+        .help("Max BVH tree depth")
+        .scan<'i', int>();
+
+    program.add_argument("-bvh_nodes")
+        .default_value(8)
+        .help("Number of children of each node")
+        .scan<'i', int>();
+
     try {
         program.parse_args(argc, argv);    // Example: ./main --color orange
     }
@@ -116,12 +126,16 @@ int main(int argc, char *argv[])
 
     time_t timer;
     float time_render_diff;
-    float time_acc_s_diff;
+    double time_acc_s_diff;
 
     auto model_file_name = program.get<std::string>("input_file");
     auto output_file_name = program.get<std::string>("output_file");
     auto acc_structure = program.get<std::string>("-acc_structure");
     auto grid_resolution = std::stoi(program.get<std::string>("-grid_resolution"));
+    auto max_tree_depth = program.get<int>("-bvh_tree_depth");
+    auto children_num = program.get<int>("-bvh_nodes");
+
+
 
     // Image
     const auto aspect_ratio = 16.0 / 9.0;
@@ -145,14 +159,14 @@ int main(int argc, char *argv[])
     }
     else if (acc_structure == "bvh")
     {
-        accel = std::unique_ptr<AccelerationStructure>(new BVH(meshes));
+        accel = std::unique_ptr<AccelerationStructure>(new BVH(meshes, max_tree_depth, children_num));
     }
     else
     {
         std::cerr << "Not implemented yet" << std::endl;
         return 2;
     }
-    time_acc_s_diff = float(clock() - begin_acc_s_time) / CLOCKS_PER_SEC;
+    time_acc_s_diff = (clock() - begin_acc_s_time) / (CLOCKS_PER_SEC/1000);
 
     // Camera
     point3 lookfrom(13, 2, 3);
@@ -193,10 +207,10 @@ int main(int argc, char *argv[])
         }
         
     }
-    time_render_diff = float(clock() - begin_render_time) / CLOCKS_PER_SEC;
+    time_render_diff = float(clock() - begin_render_time) / (CLOCKS_PER_SEC);
     ofs.close();
     std::cout.precision(3);
     std::cout << "\nDone.\nRendering time: " << time_render_diff << "[s]\n";
     std::cout.precision(5);
-    std::cout << "Create acceleration structure time: " << time_acc_s_diff << "[s]\n";
+    std::cout << "Create acceleration structure time: " << time_acc_s_diff << "[ms]\n";
 }
