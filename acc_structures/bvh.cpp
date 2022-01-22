@@ -1,4 +1,5 @@
 #include "bvh.h"
+#include <cstring>
 
 const Vec3f BVH::planeSetNormals[BVH::kNumPlaneSetNormals] = {
     Vec3f(1, 0, 0),
@@ -85,9 +86,16 @@ void BVH::Tree::build() { build(root, bbox); };
 
 BVH::Tree::TreeNode::TreeNode(uint32_t* children_num) 
 { 
-this->children_n_adr = children_num;
-std::cout << "childern numb: " << *children_num << std::endl;
-std::cout << "childern numb: " << *(this->children_n_adr) << std::endl;
+
+    // uint32_t numCells = resolution.x * resolution.y * resolution.z;
+    // cells = new Grid::Cell * [numCells];
+
+    child = new TreeNode*[*children_num];
+    memset(child, 0x0, sizeof(TreeNode*) * (*children_num));
+
+    this->children_n_adr = children_num;
+    std::cout << "childern numb: " << *children_num << std::endl;
+    std::cout << "childern numb: " << *(this->children_n_adr) << std::endl;
 }
 
 void BVH::Tree::deleteTreeNode(TreeNode*& node)
