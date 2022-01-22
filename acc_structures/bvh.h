@@ -29,7 +29,7 @@ class BVH : public AccelerationStructure
         struct TreeNode
         {
             TreeNode(uint32_t* children_num);
-            TreeNode* child[(*children_num)] = { nullptr };;
+            TreeNode* child[8] = { nullptr };;
             std::vector<const Extents*> nodeExtentsList;
             Extents nodeExtents;
             bool isLeaf = true;
