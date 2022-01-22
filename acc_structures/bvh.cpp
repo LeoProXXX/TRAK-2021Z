@@ -11,8 +11,11 @@ const Vec3f BVH::planeSetNormals[BVH::kNumPlaneSetNormals] = {
 };
 
 
-BVH::BVH(std::vector<std::unique_ptr<const Mesh>>& m, uint32_t max_tree_depth, uint32_t children_num) : AccelerationStructure(m)
+BVH::BVH(std::vector<std::unique_ptr<const Mesh>>& m, uint32_t max_tree_depth) : AccelerationStructure(m)
 {
+    if (max_tree_depth <= 0)
+        throw std::invalid_argument("The tree depth must be greater than zero.");
+
     Extents sceneExtents;
     extentsList.reserve(meshes.size());
     for (uint32_t i = 0; i < meshes.size(); ++i) {
@@ -28,13 +31,14 @@ BVH::BVH(std::vector<std::unique_ptr<const Mesh>>& m, uint32_t max_tree_depth, u
         extentsList[i].mesh = meshes[i].get();
     }
 
-    tree = new Tree(sceneExtents, max_tree_depth, children_num);
+    tree = new Tree(sceneExtents, max_tree_depth);
 
     for (uint32_t i = 0; i < meshes.size(); ++i) {
         tree->insert(&extentsList[i]);
     }
 
     tree->build();
+
 }
 
 BVH::Extents::Extents()
@@ -60,7 +64,7 @@ Vec3f BVH::Extents::centroid() const
         d[2][0] + d[2][1] * 0.5);
 }
 
-BVH::Tree::Tree(const Extents& sceneExtents, uint32_t& max_tree_depth, uint32_t& children_num)
+BVH::Tree::Tree(const Extents& sceneExtents, uint32_t& max_tree_depth)
 {
     float xDiff = sceneExtents.d[0][1] - sceneExtents.d[0][0];
     float yDiff = sceneExtents.d[1][1] - sceneExtents.d[1][0];
@@ -73,8 +77,7 @@ BVH::Tree::Tree(const Extents& sceneExtents, uint32_t& max_tree_depth, uint32_t&
     bbox[0] = (minPlusMax - maxDiff) * 0.5;
     bbox[1] = (minPlusMax + maxDiff) * 0.5;
     this->tree_depth = max_tree_depth;
-    this->children_no = children_num;
-    root = new TreeNode(&this->children_no);
+    root = new TreeNode;
 }
 
 BVH::Tree::~Tree() { deleteTreeNode(root); }
@@ -82,13 +85,6 @@ BVH::Tree::~Tree() { deleteTreeNode(root); }
 void BVH::Tree::insert(const Extents* extents) { insert(root, extents, bbox, 0); }
 
 void BVH::Tree::build() { build(root, bbox); };
-
-BVH::Tree::TreeNode::TreeNode(uint32_t* children_num) 
-{ 
-this->children_n_adr = children_num;
-std::cout << "childern numb: " << *children_num << std::endl;
-std::cout << "childern numb: " << *(this->children_n_adr) << std::endl;
-}
 
 void BVH::Tree::deleteTreeNode(TreeNode*& node)
 {
@@ -154,7 +150,7 @@ void BVH::Tree::insert(TreeNode*& node, const Extents* extents, const BBox<>& bb
         }
 
         if (node->child[childIndex] == nullptr)
-            node->child[childIndex] = new TreeNode(&this->children_no);
+            node->child[childIndex] = new TreeNode;
         insert(node->child[childIndex], extents, childBBox, depth + 1);
     }
 }

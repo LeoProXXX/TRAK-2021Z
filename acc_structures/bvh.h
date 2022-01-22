@@ -21,19 +21,17 @@ class BVH : public AccelerationStructure
 
     struct Tree
     {
-        Tree(const Extents& sceneExtents, uint32_t& max_tree_depth, uint32_t& children_num);
+        Tree(const Extents& sceneExtents, uint32_t& max_tree_depth);
         ~Tree();
         void insert(const Extents* extents);
         void build();
 
         struct TreeNode
         {
-            TreeNode(uint32_t* children_num);
             TreeNode* child[8] = { nullptr };;
             std::vector<const Extents*> nodeExtentsList;
             Extents nodeExtents;
             bool isLeaf = true;
-            uint32_t* children_n_adr;
         };
 
         struct QueueElement
@@ -47,7 +45,6 @@ class BVH : public AccelerationStructure
         TreeNode* root = nullptr;
         BBox<> bbox;
         uint32_t tree_depth;
-        uint32_t children_no;
 
     private:
 
@@ -60,7 +57,7 @@ class BVH : public AccelerationStructure
     Tree* tree = nullptr;
 
 public:
-    BVH(std::vector<std::unique_ptr<const Mesh>>& m, uint32_t max_tree_depth, uint32_t children_num);
+    BVH(std::vector<std::unique_ptr<const Mesh>>& m, uint32_t max_tree_depth);
     bool intersect(const Vec3f&, const Vec3f&, const uint32_t&, float&, hit_record&) const;
     ~BVH();
 };

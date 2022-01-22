@@ -12,6 +12,7 @@
 #include <cstring>
 #include <iostream>
 #include <time.h>
+#include <stdexcept>
 
 long long int rayIdd = 1;
 
@@ -107,22 +108,18 @@ int main(int argc, char *argv[])
 
     program.add_argument("-bvh_tree_depth")
         .default_value(16)
-        .help("Max BVH tree depth")
-        .scan<'i', int>();
-
-    program.add_argument("-bvh_nodes")
-        .default_value(8)
-        .help("Number of children of each node")
+        .help("Max BVH tree depth. The value must be greater than zero.")
         .scan<'i', int>();
 
     try {
-        program.parse_args(argc, argv);    // Example: ./main --color orange
+        program.parse_args(argc, argv);    // Example: ./main --color orange        
     }
     catch (const std::runtime_error& err) {
         std::cerr << err.what() << std::endl;
         std::cerr << program;
         std::exit(1);
     }
+
 
     time_t timer;
     float time_render_diff;
@@ -133,8 +130,6 @@ int main(int argc, char *argv[])
     auto acc_structure = program.get<std::string>("-acc_structure");
     auto grid_resolution = std::stoi(program.get<std::string>("-grid_resolution"));
     auto max_tree_depth = program.get<int>("-bvh_tree_depth");
-    auto children_num = program.get<int>("-bvh_nodes");
-
 
 
     // Image
@@ -155,11 +150,16 @@ int main(int argc, char *argv[])
     }
     else if (acc_structure == "grid")
     {
-        accel = std::unique_ptr<AccelerationStructure>(new Grid(meshes, grid_resolution));
+        accel = std::unique_ptr<AccelerationStructure>(new Grid(meshes, grid_resolution));      
     }
     else if (acc_structure == "bvh")
     {
-        accel = std::unique_ptr<AccelerationStructure>(new BVH(meshes, max_tree_depth, children_num));
+        try { accel = std::unique_ptr<AccelerationStructure>(new BVH(meshes, max_tree_depth)); }
+        catch (std::invalid_argument& e)
+        {
+            std::cerr << e.what() << std::endl;
+            std::exit(1);
+        }
     }
     else
     {
